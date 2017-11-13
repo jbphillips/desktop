@@ -1,6 +1,7 @@
 import '../lib/logging/main/install'
 
 import { app, Menu, MenuItem, ipcMain, BrowserWindow, shell } from 'electron'
+import * as Fs from 'fs'
 
 import { AppWindow } from './app-window'
 import { buildDefaultMenu, MenuEvent, findMenuItemByID } from './menu'
@@ -12,6 +13,7 @@ import { fatalError } from '../lib/fatal-error'
 import { IMenuItemState } from '../lib/menu-update'
 import { LogLevel } from '../lib/logging/log-level'
 import { log as writeLog } from './log'
+import { openDirectorySafe } from './shell'
 import { reportError } from './exception-reporting'
 import {
   enableSourceMaps,
@@ -297,6 +299,14 @@ app.on('ready', () => {
   ipcMain.on(
     'open-external',
     (event: Electron.IpcMessageEvent, { path }: { path: string }) => {
+      const pathLowerCase = path.toLowerCase()
+      if (
+        pathLowerCase.startsWith('http://') ||
+        pathLowerCase.startsWith('https://')
+      ) {
+        log.info(`opening in browser: ${path}`)
+      }
+
       const result = shell.openExternal(path)
       event.sender.send('open-external-result', { result })
     }
@@ -305,7 +315,18 @@ app.on('ready', () => {
   ipcMain.on(
     'show-item-in-folder',
     (event: Electron.IpcMessageEvent, { path }: { path: string }) => {
-      shell.showItemInFolder(path)
+      Fs.stat(path, (err, stats) => {
+        if (err) {
+          log.error(`Unable to find file at '${path}'`, err)
+          return
+        }
+
+        if (stats.isDirectory()) {
+          openDirectorySafe(path)
+        } else {
+          shell.showItemInFolder(path)
+        }
+      })
     }
   )
 })

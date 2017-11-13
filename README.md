@@ -20,7 +20,7 @@ There are several community-supported package managers that can be used to insta
  - Windows users can install using [Chocolatey](https://chocolatey.org/) package manager:
       `c:\> choco install github-desktop`
  - macOS users can install using [Homebrew](https://brew.sh/) package manager:
-      `$ brew cask install github-desktop`
+      `$ brew cask install github`
 
 You can install this alongside your existing GitHub Desktop for Mac or GitHub
 Desktop for Windows application.
@@ -29,6 +29,13 @@ Desktop for Windows application.
 repositories into the new application - you can drag-and-drop your repositories
 from disk onto the application to get started.
 
+### Beta Channel
+
+Want to test out new features and get fixes before everyone else? Install the
+beta channel to get access to early builds of Desktop:
+
+ - [macOS](https://central.github.com/deployments/desktop/desktop/latest/darwin?env=beta)
+ - [Windows](https://central.github.com/deployments/desktop/desktop/latest/win32?env=beta)
 
 ## I have a problem with GitHub Desktop
 
@@ -46,7 +53,7 @@ The [CONTRIBUTING.md](./CONTRIBUTING.md) document will help you get setup and
 familiar with the source. The [documentation](docs/) folder also contains more
 resources relevant to the project.
 
-If you're looking for something to work on, check out the [help wanted](https://github.com/desktop/desktop/issues?q=is%3Aopen+is%3Aissue+label%3Ahelp%20wanted) label.
+If you're looking for something to work on, check out the [help wanted](https://github.com/desktop/desktop/issues?q=is%3Aissue+is%3Aopen+label%3A%22help%20wanted%22) label.
 
 ## More Resources
 

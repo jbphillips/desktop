@@ -34,10 +34,10 @@ const EnterpriseTooOldMessage = `The GitHub Enterprise version does not support 
  * store can be in save for the unitialized state (null).
  */
 export enum SignInStep {
-  EndpointEntry,
-  Authentication,
-  TwoFactorAuthentication,
-  Success,
+  EndpointEntry = 'EndpointEntry',
+  Authentication = 'Authentication',
+  TwoFactorAuthentication = 'TwoFactorAuthentication',
+  Success = 'Success',
 }
 
 /**
@@ -234,7 +234,7 @@ export class SignInStore {
       }
     } else {
       throw new Error(
-        `Unable to authenticate with the GitHub Enterprise instance. Verify that the URL is correct and that your GitHub Enterprise instance is running version ${minimumSupportedEnterpriseVersion} or later.`
+        `Unable to authenticate with the GitHub Enterprise instance. Verify that the URL is correct, that your GitHub Enterprise instance is running version ${minimumSupportedEnterpriseVersion} or later, that you have an internet connection and try again.`
       )
     }
   }
@@ -404,8 +404,11 @@ export class SignInStore {
 
     let account: Account
     try {
+      log.info('[SignInStore] initializing OAuth flow')
       account = await askUserToOAuth(currentState.endpoint)
+      log.info('[SignInStore] account resolved')
     } catch (e) {
+      log.info('[SignInStore] error with OAuth flow', e)
       this.setState({ ...currentState, error: e, loading: false })
       return
     }
@@ -526,9 +529,10 @@ export class SignInStore {
       currentState.kind !== SignInStep.TwoFactorAuthentication
     ) {
       const stepText = currentState ? currentState.kind : 'null'
-      return fatalError(
+      fatalError(
         `Sign in step '${stepText}' not compatible with two factor authentication`
       )
+      return
     }
 
     this.setState({ ...currentState, loading: true })
@@ -600,7 +604,7 @@ export class SignInStore {
           this.emitError(new Error(EnterpriseTooOldMessage))
           break
         default:
-          return assertNever(response, `Unknown response: ${response}`)
+          assertNever(response, `Unknown response: ${response}`)
       }
     }
   }

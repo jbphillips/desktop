@@ -1,38 +1,5 @@
 import * as React from 'react'
 
-export interface IResizableProps extends React.Props<Resizable> {
-  readonly width: number
-
-  /** The maximum width the panel can be resized to.
-   *
-   * @default 350
-   */
-  readonly maximumWidth?: number
-
-  /**
-   * The minimum width the panel can be resized to.
-   *
-   * @default 150
-   */
-  readonly minimumWidth?: number
-
-  /** The optional ID for the root element. */
-  readonly id?: string
-
-  /**
-   * Handler called when the width of the component has changed
-   * through an explicit resize event (dragging the handle).
-   */
-  readonly onResize?: (newWidth: number) => void
-
-  /**
-   * Handler called when the resizable component has been
-   * reset (ie restored to its original width by double clicking
-   * on the resize handle).
-   */
-  readonly onReset?: () => void
-}
-
 /**
  * Component abstracting a resizable panel.
  *
@@ -80,6 +47,8 @@ export class Resizable extends React.Component<IResizableProps, {}> {
 
     document.addEventListener('mousemove', this.handleDragMove)
     document.addEventListener('mouseup', this.handleDragStop)
+
+    e.preventDefault()
   }
 
   /**
@@ -97,6 +66,8 @@ export class Resizable extends React.Component<IResizableProps, {}> {
     if (this.props.onResize) {
       this.props.onResize(newWidthClamped)
     }
+
+    e.preventDefault()
   }
 
   /**
@@ -106,6 +77,8 @@ export class Resizable extends React.Component<IResizableProps, {}> {
   private handleDragStop = (e: MouseEvent) => {
     document.removeEventListener('mousemove', this.handleDragMove)
     document.removeEventListener('mouseup', this.handleDragStop)
+
+    e.preventDefault()
   }
 
   /**
@@ -138,4 +111,37 @@ export class Resizable extends React.Component<IResizableProps, {}> {
       </div>
     )
   }
+}
+
+export interface IResizableProps extends React.Props<Resizable> {
+  readonly width: number
+
+  /** The maximum width the panel can be resized to.
+   *
+   * @default 350
+   */
+  readonly maximumWidth?: number
+
+  /**
+   * The minimum width the panel can be resized to.
+   *
+   * @default 150
+   */
+  readonly minimumWidth?: number
+
+  /** The optional ID for the root element. */
+  readonly id?: string
+
+  /**
+   * Handler called when the width of the component has changed
+   * through an explicit resize event (dragging the handle).
+   */
+  readonly onResize?: (newWidth: number) => void
+
+  /**
+   * Handler called when the resizable component has been
+   * reset (ie restored to its original width by double clicking
+   * on the resize handle).
+   */
+  readonly onReset?: () => void
 }

@@ -7,11 +7,11 @@ import { Branch } from '../models/branch'
 import { Tip } from '../models/tip'
 import { Commit } from '../models/commit'
 import {
-  FileChange,
+  CommittedFileChange,
   WorkingDirectoryStatus,
   WorkingDirectoryFileChange,
 } from '../models/status'
-import { CloningRepository } from './stores/cloning-repositories-store'
+import { CloningRepository } from '../models/cloning-repository'
 import { IGitHubUser } from './databases/github-user-database'
 import { SignInState } from './stores/sign-in-store'
 import { ICommitMessage } from './stores/git-store'
@@ -19,10 +19,12 @@ import { IMenu } from '../models/app-menu'
 import { IRemote } from '../models/remote'
 import { WindowState } from './window-state'
 import { RetryAction } from './retry-actions'
-import { ExternalEditor } from '../models/editors'
+import { ExternalEditor } from '../lib/editors'
 import { PreferencesTab } from '../models/preferences'
 import { Shell } from './shells'
 import { CloneRepositoryTab } from '../models/clone-repository-tab'
+import { BranchesTab } from '../models/branches-tab'
+import { PullRequest } from '../models/pull-request'
 
 export { ICommitMessage }
 export { IAheadBehind }
@@ -172,6 +174,9 @@ export interface IAppState {
 
   /** The currently selected tab for Clone Repository. */
   readonly selectedCloneRepositoryTab: CloneRepositoryTab
+
+  /** The currently selected tab for the Branches foldout. */
+  readonly selectedBranchesTab: BranchesTab
 }
 
 export enum PopupType {
@@ -200,6 +205,7 @@ export enum PopupType {
   OpenShellFailed,
   InitializeLFS,
   LFSAttributeMismatch,
+  UpstreamAlreadyExists,
 }
 
 export type Popup =
@@ -219,7 +225,11 @@ export type Popup =
       type: PopupType.CloneRepository
       initialURL: string | null
     }
-  | { type: PopupType.CreateBranch; repository: Repository }
+  | {
+      type: PopupType.CreateBranch
+      repository: Repository
+      initialName?: string
+    }
   | { type: PopupType.SignIn }
   | { type: PopupType.About }
   | { type: PopupType.InstallGit; path: string }
@@ -253,6 +263,11 @@ export type Popup =
   | { type: PopupType.OpenShellFailed; message: string }
   | { type: PopupType.InitializeLFS; repositories: ReadonlyArray<Repository> }
   | { type: PopupType.LFSAttributeMismatch }
+  | {
+      type: PopupType.UpstreamAlreadyExists
+      repository: Repository
+      existingRemote: IRemote
+    }
 
 export enum FoldoutType {
   Repository,
@@ -354,6 +369,14 @@ export interface IRepositoryState {
    * null if no such operation is in flight.
    */
   readonly pushPullFetchProgress: Progress | null
+
+  /**
+   * If we're currently reverting a commit and it involves LFS progress, this
+   * will contain the LFS progress.
+   *
+   * null if no such operation is in flight.
+   */
+  readonly revertProgress: IRevertProgress | null
 }
 
 export type Progress =
@@ -362,6 +385,7 @@ export type Progress =
   | IFetchProgress
   | IPullProgress
   | IPushProgress
+  | IRevertProgress
 
 /**
  * Base interface containing all the properties that progress events
@@ -459,6 +483,11 @@ export interface ICloneProgress extends IProgress {
   kind: 'clone'
 }
 
+/** An object describing the progression of a revert operation. */
+export interface IRevertProgress extends IProgress {
+  kind: 'revert'
+}
+
 export interface IBranchesState {
   /**
    * The current tip of HEAD, either a branch, a commit (if HEAD is
@@ -486,11 +515,17 @@ export interface IBranchesState {
    * switches over the last couple of thousand reflog entries.
    */
   readonly recentBranches: ReadonlyArray<Branch>
+
+  /** The open pull requests in the repository. */
+  readonly openPullRequests: ReadonlyArray<PullRequest> | null
+
+  /** The pull request associated with the current branch. */
+  readonly currentPullRequest: PullRequest | null
 }
 
 export interface IHistorySelection {
   readonly sha: string | null
-  readonly file: FileChange | null
+  readonly file: CommittedFileChange | null
 }
 
 export interface IHistoryState {
@@ -499,7 +534,7 @@ export interface IHistoryState {
   /** The ordered SHAs. */
   readonly history: ReadonlyArray<string>
 
-  readonly changedFiles: ReadonlyArray<FileChange>
+  readonly changedFiles: ReadonlyArray<CommittedFileChange>
 
   readonly diff: IDiff | null
 }

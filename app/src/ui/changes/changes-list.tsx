@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { CommitMessage } from './commit-message'
 import { ChangedFile } from './changed-file'
-import { List, ClickSource } from '../list'
+import { List, ClickSource } from '../lib/list'
 
 import {
   WorkingDirectoryStatus,
@@ -12,8 +12,8 @@ import { CommitIdentity } from '../../models/commit-identity'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { ICommitMessage } from '../../lib/app-state'
 import { IGitHubUser } from '../../lib/databases'
-import { IAutocompletionProvider } from '../autocompletion'
 import { Dispatcher } from '../../lib/dispatcher'
+import { IAutocompletionProvider } from '../autocompletion'
 import { Repository } from '../../models/repository'
 import { showContextualMenu, IMenuItem } from '../main-process-proxy'
 
